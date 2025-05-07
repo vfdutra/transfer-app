@@ -27,12 +27,6 @@ class TransactionController extends Controller
             ]);
         }
 
-        if ($sender->balance < $request->amount) {
-            throw ValidationException::withMessages([
-                'amount' => ['Saldo insuficiente para realizar a transferência.']
-            ]);
-        }
-
         try {
             DB::beginTransaction();
 
@@ -101,7 +95,18 @@ class TransactionController extends Controller
             ]);
 
             // Atualiza o saldo do usuário
-            $user->balance += $request->amount;
+            $depositAmount = $request->amount;
+            if ($user->balance < 0) {
+                $debt = abs($user->balance);
+                if ($depositAmount >= $debt) {
+                    $depositAmount -= $debt;
+                    $user->balance = 0;
+                } else {
+                    $user->balance += $depositAmount;
+                    $depositAmount = 0;
+                }
+            }
+            $user->balance += $depositAmount;
             $user->save();
 
             // Atualiza o status da transação
