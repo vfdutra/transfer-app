@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { login as apiLogin } from '../services/api';
 import type { LoginResponse } from '../services/api';
 
@@ -16,14 +16,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LoginResponse['user'] | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // Verifica se há um token no localStorage
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/login');
+      const publicRoutes = ['/login', '/register'];
+      if (!publicRoutes.includes(location.pathname)) {
+        navigate('/login');
+      }
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   const login = async (email: string, password: string) => {
     try {

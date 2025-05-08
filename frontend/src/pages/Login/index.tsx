@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Box, Button, TextField, Typography, Container, Alert } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +71,14 @@ export default function Login() {
               sx={{ mt: 3, mb: 2 }}
             >
               Entrar
+            </Button>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => navigate('/register')}
+              sx={{ mb: 2 }}
+            >
+              Criar nova conta
             </Button>
           </Box>
         </Box>

@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import { Register } from './pages/Register';
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ function AppRoutes() {
     <QueryClientProvider client={queryClient}>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/dashboard"
           element={
