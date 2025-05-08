@@ -29,7 +29,7 @@ export default function Login() {
             alignItems: 'center',
           }}
         >
-          <Typography component="h1" variant="h5">
+          <Typography component="h1" variant="h5" color="black">
             Login
           </Typography>
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
