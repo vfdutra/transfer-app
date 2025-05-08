@@ -23,6 +23,12 @@ php artisan config:clear
 php artisan cache:clear
 php artisan view:clear
 
+# Esperar o MySQL estar pronto
+until php artisan migrate:status > /dev/null 2>&1; do
+  echo "Aguardando o banco de dados ficar pronto..."
+  sleep 3
+done
+
 # Executar migrações
 php artisan migrate --force
 

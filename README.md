@@ -50,12 +50,7 @@ cp .env.example .env
 docker-compose up -d
 ```
 
-4. **Execute as migrations:**
-```bash
-docker-compose exec backend php artisan migrate
-```
-
-5. **Acesse a aplicação:**
+4. **Acesse a aplicação:**
 - Frontend: http://localhost:5173
 - API: http://localhost:8000/api
 
