@@ -1,64 +1,63 @@
+version: '3.8'
+
 services:
-  app:
+  backend:
     build:
-      context: ./
+      context: .
       dockerfile: Dockerfile
-    image: transfer-app
-    container_name: transfer-app
-    restart: unless-stopped
-    working_dir: /var/www/
     volumes:
       - ./:/var/www
-    networks:
-      - laravel_network
-
-  db:
-    image: mysql:8.0
-    container_name: mysql_db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-laravel}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
-    volumes:
-      - dbdata:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - laravel_network
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
-    restart: unless-stopped
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     ports:
       - "8000:80"
-    volumes:
-      - ./:/var/www
-      - ./docker/nginx:/etc/nginx/conf.d/
+    depends_on:
+      mysql:
+        condition: service_healthy
     networks:
-      - laravel_network
+      - app-network
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=transfer_app
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: transfer-app-frontend
-    restart: unless-stopped
     volumes:
       - ./frontend:/app
       - /app/node_modules
     ports:
       - "5173:5173"
-    networks:
-      - laravel_network
     depends_on:
-      - app
+      - backend
+    networks:
+      - app-network
+    environment:
+      - VITE_API_URL=http://localhost:8000/api
 
-volumes:
-  dbdata:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_DATABASE=transfer_app
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
 networks:
-  laravel_network:
+  app-network:
     driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
