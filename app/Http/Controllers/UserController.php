@@ -10,6 +10,20 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
+    /**
+     * Registra um novo usuário no sistema.
+     *
+     * @param Request $request
+     *    - name: string (nome do usuário)
+     *    - email: string (email único do usuário)
+     *    - cpf: string (CPF único do usuário, 11 dígitos)
+     *    - password: string (senha com mínimo de 8 caracteres)
+     * @return \Illuminate\Http\JsonResponse
+     *    - user: User (dados do usuário criado)
+     *    - token: string (token de autenticação)
+     * @throws \Exception
+     *    - Erro ao criar usuário
+     */
     public function register(Request $request)
     {
         try {
@@ -46,6 +60,18 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Autentica um usuário no sistema.
+     *
+     * @param Request $request
+     *    - email: string (email do usuário)
+     *    - password: string (senha do usuário)
+     * @return \Illuminate\Http\JsonResponse
+     *    - user: User (dados do usuário autenticado)
+     *    - token: string (token de autenticação)
+     * @throws ValidationException
+     *    - Credenciais inválidas
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -69,6 +95,14 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+    * Atualiza os dados do usuário autenticado.
+    *
+    * @param Request $request
+    *    - name, email, cpf, password (opcionais)
+    * @return \Illuminate\Http\JsonResponse
+    *    - user: User atualizado
+    */
     public function update(Request $request)
     {
         $user = $request->user();
@@ -94,6 +128,13 @@ class UserController extends Controller
         return response()->json($user);
     }
 
+    /**
+     * Exclui a conta do usuário autenticado.
+
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     *    - message: string
+     */
     public function delete(Request $request)
     {
         $user = $request->user();
@@ -103,6 +144,13 @@ class UserController extends Controller
         return response()->json(['message' => 'Usuário excluído com sucesso']);
     }
 
+    /**
+    * Mostra os dados de um usuário pelo ID.
+    *
+    * @param int $id
+    * @return \Illuminate\Http\JsonResponse
+    *    - user: {id, name, email, cpf}
+    */
     public function show($id)
     {
         $user = \App\Models\User::find($id);

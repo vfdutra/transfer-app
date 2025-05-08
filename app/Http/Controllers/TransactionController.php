@@ -10,6 +10,17 @@ use Illuminate\Validation\ValidationException;
 
 class TransactionController extends Controller
 {
+    /**
+    * Realiza uma transferência entre usuários.
+    *
+    * @param Request $request
+    *    - receiver_id: int (ID do destinatário)
+    *    - amount: float (valor a transferir)
+    *    - description: string|null (opcional)
+    * @return \Illuminate\Http\JsonResponse
+    *    - message: string
+    *    - transaction: Transaction
+    */
     public function transfer(Request $request)
     {
         $request->validate([
@@ -73,6 +84,16 @@ class TransactionController extends Controller
         }
     }
 
+    /**
+    * Realiza um depósito na conta do usuário autenticado.
+    *
+    * @param Request $request
+    *    - amount: float (valor do depósito)
+    *    - description: string|null (opcional)
+    * @return \Illuminate\Http\JsonResponse
+    *    - message: string
+    *    - transaction: Transaction
+    */
     public function deposit(Request $request)
     {
         $request->validate([
@@ -135,6 +156,13 @@ class TransactionController extends Controller
         }
     }
 
+    /**
+    * Lista o histórico de transações do usuário autenticado.
+    *
+    * @param Request $request
+    * @return \Illuminate\Http\JsonResponse
+    *    - data: array de transações paginadas
+    */
     public function history(Request $request)
     {
         $user = $request->user();
@@ -148,6 +176,15 @@ class TransactionController extends Controller
         return response()->json($transactions);
     }
 
+    /**
+    * Reverte uma transação (apenas se for completed e do próprio usuário).
+    *
+    * @param Request $request
+    * @param Transaction $transaction
+    * @return \Illuminate\Http\JsonResponse
+    *    - message: string
+    *    - transaction: Transaction
+    */
     public function reverse(Request $request, Transaction $transaction)
     {
         if ($transaction->status !== 'completed') {

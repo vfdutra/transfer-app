@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+/**
+ * Instância do Axios configurada para a API.
+ */
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
   withCredentials: true,
@@ -9,7 +12,9 @@ const api = axios.create({
   }
 });
 
-// Interceptor para adicionar o token em todas as requisições
+/**
+ * Interceptor para adicionar o token em todas as requisições.
+ */
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -18,7 +23,10 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor para tratar erros de autenticação
+/**
+ * Interceptor para tratar erros de autenticação.
+ * Remove o token e redireciona para login em caso de 401.
+ */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -99,51 +107,95 @@ export interface UserSummary {
   cpf: string;
 }
 
+/**
+ * Realiza login do usuário.
+ * @param credentials - Objeto com email e senha.
+ * @returns Dados do usuário e token de autenticação.
+ */
 export const login = async (credentials: LoginCredentials): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse>('/login', credentials);
-  // Salva o token no localStorage após o login
   localStorage.setItem('token', response.data.token);
   return response.data;
 };
 
+/**
+ * Realiza transferência entre usuários.
+ * @param data - receiver_id: ID do destinatário, amount: valor, description: descrição opcional.
+ * @returns Mensagem, transação criada e novo saldo.
+ */
 export const transfer = async (data: { receiver_id: number; amount: number; description?: string }): Promise<TransactionResult> => {
   const response = await api.post('/transactions/transfer', data);
   return response.data;
 };
 
+/**
+ * Realiza depósito na conta do usuário autenticado.
+ * @param data - amount: valor, description: descrição opcional.
+ * @returns Mensagem, transação criada e novo saldo.
+ */
 export const deposit = async (data: { amount: number; description?: string }): Promise<TransactionResult> => {
   const response = await api.post('/transactions/deposit', data);
   return response.data;
 };
 
+/**
+ * Busca o histórico de transações do usuário autenticado.
+ * @param page - Página da paginação (opcional, padrão 1).
+ * @returns Lista paginada de transações.
+ */
 export const getTransactionHistory = async (page: number = 1): Promise<TransactionResponse> => {
   const response = await api.get(`/transactions/history?page=${page}`);
   return response.data;
 };
 
+/**
+ * Reverte uma transação.
+ * @param transactionId - ID da transação a ser revertida.
+ * @returns Mensagem, transação revertida e novo saldo.
+ */
 export const reverseTransaction = async (transactionId: number): Promise<TransactionResult> => {
   const response = await api.post(`/transactions/${transactionId}/reverse`);
   return response.data;
 };
 
+/**
+ * Envia uma contestação de reversão de transação.
+ * @param transactionId - ID da transação revertida.
+ * @param reason - Motivo da contestação.
+ * @returns Mensagem, transação atualizada e novo saldo.
+ */
 export const disputeReversedTransaction = async (transactionId: number, reason: string): Promise<TransactionResult> => {
   const response = await api.post(`/transactions/${transactionId}/dispute`, { reason });
   return response.data;
 };
 
+/**
+ * Busca dados de um usuário pelo ID.
+ * @param id - ID do usuário.
+ * @returns Dados resumidos do usuário (id, name, email, cpf).
+ */
+export const getUserById = async (id: number): Promise<UserSummary> => {
+  const response = await api.get(`/users/${id}`);
+  return response.data.user;
+};
+
+/**
+ * Atualiza os dados do usuário autenticado.
+ * @param data - Campos a serem atualizados (name, email, cpf, password).
+ * @returns Usuário atualizado.
+ */
 export const updateUser = async (data: UpdateUserData): Promise<LoginResponse['user']> => {
   const response = await api.put('/user', data);
   return response.data.user;
 };
 
+/**
+ * Exclui a conta do usuário autenticado.
+ * @returns Mensagem de sucesso.
+ */
 export const deleteUser = async (): Promise<{ message: string }> => {
   const response = await api.delete('/user');
   return response.data;
-};
-
-export const getUserById = async (id: number): Promise<UserSummary> => {
-  const response = await api.get(`/users/${id}`);
-  return response.data.user;
 };
 
 export default api; 
