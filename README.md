@@ -37,7 +37,7 @@ Um sistema moderno de transferência bancária desenvolvido com Laravel e React,
 
 1. **Clone o repositório:**
 ```bash
-cd transfer-app-v4
+cd transfer-app
 ```
 
 2. **Copie o arquivo de variáveis de ambiente:**
