@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5173
 
 # Comando para iniciar o servidor de desenvolvimento
-CMD ["npm", "run", "dev", "--", "--host"] 
+CMD ["sh", "-c", "npm run dev -- --host"] 

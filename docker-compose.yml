@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app-network
+
   backend:
     build:
       context: .
@@ -8,8 +21,6 @@ services:
     volumes:
       - ./:/var/www
       - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
-    ports:
-      - "8000:80"
     depends_on:
       mysql:
         condition: service_healthy
@@ -20,6 +31,12 @@ services:
       - DB_DATABASE=transfer_app
       - DB_USERNAME=root
       - DB_PASSWORD=root
+    user: root
+    command: >
+      sh -c "composer install &&
+             php artisan key:generate &&
+             php artisan migrate &&
+             php-fpm"
 
   frontend:
     build:
@@ -28,8 +45,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "5173:5173"
     depends_on:
       - backend
     networks:
