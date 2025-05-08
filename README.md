@@ -47,11 +47,11 @@ cp .env.example .env
 
 3. **Suba os containers:**
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 4. **Acesse a aplicação:**
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:8000
 - API: http://localhost:8000/api
 
 ## 📋 Pré-requisitos

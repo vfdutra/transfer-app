@@ -49,36 +49,20 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-
+    
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
+    setErrors({});
 
     try {
       await login(formData.email, formData.password);
-    } catch (err: any) {
-      const errorMessage = err.message || 'Erro ao fazer login';
-      
-      // Se a mensagem de erro contiver quebras de linha, divide em múltiplos erros
-      if (errorMessage.includes('\n')) {
-        const errorLines = errorMessage.split('\n');
-        const newErrors: Record<string, string> = {};
-        
-        errorLines.forEach((line: string) => {
-          const [field, message] = line.split(': ');
-          if (field && message) {
-            const fieldName = field.toLowerCase().replace(/\s+/g, '_');
-            newErrors[fieldName] = message;
-          }
-        });
-        
-        setErrors(newErrors);
-      } else {
-        setErrors({ general: errorMessage });
-      }
+    } catch (error: any) {
+      setErrors({
+        general: error.message || 'Erro ao fazer login. Verifique suas credenciais.'
+      });
     } finally {
       setLoading(false);
     }
