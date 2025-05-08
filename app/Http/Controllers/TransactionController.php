@@ -27,6 +27,13 @@ class TransactionController extends Controller
             'receiver_id' => 'required|exists:users,id',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:255'
+        ], [
+            'receiver_id.required' => 'O ID do destinatário é obrigatório',
+            'receiver_id.exists' => 'Destinatário não encontrado',
+            'amount.required' => 'O valor é obrigatório',
+            'amount.numeric' => 'O valor deve ser um número',
+            'amount.min' => 'O valor mínimo para transferência é R$ 0,01',
+            'description.max' => 'A descrição não pode ter mais de 255 caracteres'
         ]);
 
         $sender = $request->user();
@@ -35,6 +42,12 @@ class TransactionController extends Controller
         if ($sender->id === $receiver->id) {
             throw ValidationException::withMessages([
                 'receiver_id' => ['Você não pode transferir para si mesmo.']
+            ]);
+        }
+
+        if ($sender->balance < $request->amount) {
+            throw ValidationException::withMessages([
+                'amount' => ['Saldo insuficiente para realizar a transferência.']
             ]);
         }
 
@@ -66,7 +79,8 @@ class TransactionController extends Controller
 
             return response()->json([
                 'message' => 'Transferência realizada com sucesso',
-                'transaction' => $transaction
+                'transaction' => $transaction,
+                'new_balance' => $sender->balance
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -79,7 +93,7 @@ class TransactionController extends Controller
 
             return response()->json([
                 'message' => 'Erro ao realizar transferência',
-                'error' => $e->getMessage()
+                'error' => 'Não foi possível processar a transferência. Por favor, tente novamente.'
             ], 500);
         }
     }
@@ -99,6 +113,11 @@ class TransactionController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:255'
+        ], [
+            'amount.required' => 'O valor é obrigatório',
+            'amount.numeric' => 'O valor deve ser um número',
+            'amount.min' => 'O valor mínimo para depósito é R$ 0,01',
+            'description.max' => 'A descrição não pode ter mais de 255 caracteres'
         ]);
 
         $user = $request->user();
@@ -138,7 +157,8 @@ class TransactionController extends Controller
 
             return response()->json([
                 'message' => 'Depósito realizado com sucesso',
-                'transaction' => $transaction
+                'transaction' => $transaction,
+                'new_balance' => $user->balance
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -151,7 +171,7 @@ class TransactionController extends Controller
 
             return response()->json([
                 'message' => 'Erro ao realizar depósito',
-                'error' => $e->getMessage()
+                'error' => 'Não foi possível processar o depósito. Por favor, tente novamente.'
             ], 500);
         }
     }

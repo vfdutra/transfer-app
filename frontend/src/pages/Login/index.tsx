@@ -4,20 +4,83 @@ import { Box, Button, TextField, Typography, Container, Alert } from '@mui/mater
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Limpa o erro do campo quando o usuário começa a digitar
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'O email é obrigatório';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Digite um email válido';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'A senha é obrigatória';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setErrors({});
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
 
     try {
-      await login(email, password);
-    } catch (err) {
-      setError('Email ou senha inválidos');
+      await login(formData.email, formData.password);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Erro ao fazer login';
+      
+      // Se a mensagem de erro contiver quebras de linha, divide em múltiplos erros
+      if (errorMessage.includes('\n')) {
+        const errorLines = errorMessage.split('\n');
+        const newErrors: Record<string, string> = {};
+        
+        errorLines.forEach((line: string) => {
+          const [field, message] = line.split(': ');
+          if (field && message) {
+            const fieldName = field.toLowerCase().replace(/\s+/g, '_');
+            newErrors[fieldName] = message;
+          }
+        });
+        
+        setErrors(newErrors);
+      } else {
+        setErrors({ general: errorMessage });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,12 +97,14 @@ export default function Login() {
           <Typography component="h1" variant="h5" color="black">
             Login
           </Typography>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
+
+          {errors.general && (
+            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+              {errors.general}
+            </Alert>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
             <TextField
               margin="normal"
               required
@@ -49,8 +114,10 @@ export default function Login() {
               name="email"
               autoComplete="email"
               autoFocus
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
+              error={!!errors.email}
+              helperText={errors.email}
             />
             <TextField
               margin="normal"
@@ -61,24 +128,26 @@ export default function Login() {
               type="password"
               id="password"
               autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
+              error={!!errors.password}
+              helperText={errors.password}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Entrar
+              {loading ? 'Entrando...' : 'Entrar'}
             </Button>
             <Button
               fullWidth
-              variant="outlined"
+              variant="text"
               onClick={() => navigate('/register')}
-              sx={{ mb: 2 }}
             >
-              Criar nova conta
+              Não tem uma conta? Registre-se
             </Button>
           </Box>
         </Box>

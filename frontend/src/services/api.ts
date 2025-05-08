@@ -24,8 +24,23 @@ api.interceptors.request.use((config) => {
 });
 
 /**
- * Interceptor para tratar erros de autenticação.
- * Remove o token e redireciona para login em caso de 401.
+ * Função para formatar mensagens de erro de validação
+ */
+const formatValidationErrors = (errors: Record<string, string[]>): string => {
+  const formattedErrors = Object.entries(errors)
+    .map(([field, messages]) => {
+      const fieldName = field === 'cpf' ? 'CPF' : 
+                       field === 'password_confirmation' ? 'Confirmação de senha' :
+                       field.charAt(0).toUpperCase() + field.slice(1);
+      return messages.map(message => `${fieldName}: ${message}`).join('\n');
+    })
+    .join('\n');
+  
+  return formattedErrors;
+};
+
+/**
+ * Interceptor para tratar erros de resposta
  */
 api.interceptors.response.use(
   (response) => response,
@@ -33,8 +48,28 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';
+      return Promise.reject(new Error('Sua sessão expirou. Por favor, faça login novamente.'));
     }
-    return Promise.reject(error);
+
+    const response = error.response?.data;
+
+    // Erro de validação (422)
+    if (error.response?.status === 422 && response?.errors) {
+      const errorMessage = formatValidationErrors(response.errors);
+      return Promise.reject(new Error(errorMessage));
+    }
+
+    // Erro com mensagem específica
+    if (response?.message) {
+      // Se tiver erro detalhado, inclui na mensagem
+      if (response.error) {
+        return Promise.reject(new Error(`${response.message}\n${response.error}`));
+      }
+      return Promise.reject(new Error(response.message));
+    }
+
+    // Erro genérico
+    return Promise.reject(new Error('Ocorreu um erro inesperado. Por favor, tente novamente.'));
   }
 );
 

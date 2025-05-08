@@ -28,6 +28,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users/{id}', [UserController::class, 'show']);
     Route::put('/user', [UserController::class, 'update']);
     Route::delete('/user', [UserController::class, 'delete']);
+    Route::get('/user', [UserController::class, 'me']);
 
     Route::post('/transactions/transfer', [TransactionController::class, 'transfer']);
     Route::post('/transactions/deposit', [TransactionController::class, 'deposit']);
