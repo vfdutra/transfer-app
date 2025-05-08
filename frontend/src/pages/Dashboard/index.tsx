@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Container,
   Paper,
   Typography,
   Button,
@@ -10,19 +9,9 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  IconButton,
   Box,
   Alert,
-  AppBar,
   Toolbar,
-  Tooltip,
   Chip,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -31,12 +20,10 @@ import { getTransactionHistory, transfer, deposit, reverseTransaction, disputeRe
 import type { UserSummary } from '../../services/api';
 import { formatCurrency } from '../../utils/format';
 import { useAuth } from '../../contexts/AuthContext';
-import LogoutIcon from '@mui/icons-material/Logout';
 import UndoIcon from '@mui/icons-material/Undo';
-import GavelIcon from '@mui/icons-material/Gavel';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import WarningIcon from '@mui/icons-material/Warning';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import DashboardHeader from './DashboardHeader';
+import TransactionTable from './TransactionTable';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -50,18 +37,6 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-}));
-
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  '&:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
-  },
-}));
-
-const StyledTableHeadCell = styled(TableCell)(({ theme }) => ({
-  fontWeight: 'bold',
-  background: theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.grey[200],
-  fontSize: 16,
 }));
 
 const Dashboard = () => {
@@ -82,7 +57,7 @@ const Dashboard = () => {
   const [receiverInfo, setReceiverInfo] = useState<UserSummary | null>(null);
   const [loadingReceiver, setLoadingReceiver] = useState(false);
 
-  const { data: transactions, isLoading } = useQuery({
+  const { data: transactions } = useQuery({
     queryKey: ['transactions', page + 1],
     queryFn: () => getTransactionHistory(page + 1),
   });
@@ -204,9 +179,9 @@ const Dashboard = () => {
     }
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = React.useCallback((newPage: number) => {
     setPage(newPage);
-  };
+  }, []);
 
   const getStatusChip = (status: string, disputeStatus?: string) => {
     switch (status) {
@@ -234,31 +209,8 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="fixed" sx={{ boxShadow: 3 }}>
-        <Toolbar sx={{ maxWidth: 1400, width: '100%', mx: 'auto' }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Olá, {user?.name}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-            <AccountBalanceWalletIcon sx={{ mr: 1 }} />
-            <Typography variant="subtitle1" sx={{ mr: 1 }}>
-              Saldo: {formatCurrency(user?.balance ?? 0)}
-            </Typography>
-            {(user?.balance ?? 0) < 0 && (
-              <Tooltip title="Seu saldo está negativo. O valor será descontado automaticamente no seu próximo depósito.">
-                <WarningIcon color="warning" />
-              </Tooltip>
-            )}
-          </Box>
-          <IconButton color="inherit" onClick={() => navigate('/profile')} sx={{ mr: 1 }}>
-            <AccountCircleIcon />
-          </IconButton>
-          <IconButton color="inherit" onClick={logout}>
-            <LogoutIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-      <Toolbar /> {/* Espaço para o AppBar fixo */}
+      <DashboardHeader user={user} logout={logout} navigate={navigate} />
+      <Toolbar />
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 4, px: { xs: 1, sm: 3 } }}>
         <StyledPaper sx={{ width: { xs: '100%', md: '90%' }, maxWidth: 1400 }}>
           <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} mb={2} gap={2} width="100%">
@@ -288,82 +240,16 @@ const Dashboard = () => {
               {error}
             </Alert>
           )}
-          <TableContainer sx={{ width: '100%' }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <StyledTableHeadCell>Data</StyledTableHeadCell>
-                  <StyledTableHeadCell>Tipo</StyledTableHeadCell>
-                  <StyledTableHeadCell>De</StyledTableHeadCell>
-                  <StyledTableHeadCell>Para</StyledTableHeadCell>
-                  <StyledTableHeadCell>Valor</StyledTableHeadCell>
-                  <StyledTableHeadCell>Status</StyledTableHeadCell>
-                  <StyledTableHeadCell>Ações</StyledTableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {transactions?.data.map((transaction) => (
-                  <StyledTableRow key={transaction.id}>
-                    <TableCell>
-                      {new Date(transaction.created_at).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      {transaction.type === 'transfer' ? 'Transferência' : 'Depósito'}
-                    </TableCell>
-                    <TableCell>{transaction.sender.name}</TableCell>
-                    <TableCell>{transaction.receiver.name}</TableCell>
-                    <TableCell>{formatCurrency(transaction.amount)}</TableCell>
-                    <TableCell>
-                      {getStatusChip(transaction.status, transaction.dispute_status)}
-                    </TableCell>
-                    <TableCell>
-                      {transaction.status === 'completed' &&
-                        transaction.type === 'transfer' &&
-                        transaction.can_reverse && (
-                          <Tooltip title="Reverter transação">
-                            <IconButton
-                              color="error"
-                              onClick={() => handleReverse(transaction.id)}
-                              disabled={reverseMutation.isPending}
-                            >
-                              <UndoIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      {transaction.status === 'reversed' &&
-                        transaction.receiver_id === user?.id &&
-                        !transaction.dispute_status && (
-                          <Tooltip title="Contestar reversão">
-                            <IconButton
-                              color="warning"
-                              onClick={() => {
-                                setSelectedTransaction(transaction.id);
-                                setOpenDispute(true);
-                              }}
-                            >
-                              <GavelIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                    </TableCell>
-                  </StyledTableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            component="div"
-            count={transactions?.total || 0}
+          <TransactionTable
+            transactions={transactions}
             page={page}
-            onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[10]}
+            onPageChange={handleChangePage}
+            user={user}
+            getStatusChip={getStatusChip}
+            handleReverse={handleReverse}
+            setSelectedTransaction={setSelectedTransaction}
+            setOpenDispute={setOpenDispute}
           />
         </StyledPaper>
       </Box>
