@@ -20,7 +20,7 @@ Um sistema moderno de transferência bancária desenvolvido com Laravel e React,
 ## 🛠️ Tecnologias Utilizadas
 
 ### Backend
-- PHP 8.1+
+- PHP 8.1+ (via Docker)
 - Laravel 10.x
 - Laravel Sanctum (Autenticação)
 - MySQL (Banco de dados)
@@ -33,60 +33,39 @@ Um sistema moderno de transferência bancária desenvolvido com Laravel e React,
 - Vite
 - Axios
 
-## 🔧 Instalação
+## 🔧 Instalação e Execução (via Docker)
 
-1. Clone o repositório:
+1. **Clone o repositório:**
 ```bash
-git clone [URL_DO_REPOSITÓRIO]
 cd transfer-app-v4
 ```
 
-2. Configure o ambiente backend:
+2. **Copie o arquivo de variáveis de ambiente:**
 ```bash
 cp .env.example .env
-composer install
-php artisan key:generate
-php artisan migrate
 ```
 
-3. Configure o ambiente frontend:
-```bash
-cd frontend
-npm install
-```
-
-4. Inicie os serviços com Docker:
+3. **Suba os containers:**
 ```bash
 docker-compose up -d
 ```
 
-5. Execute as migrations:
+4. **Execute as migrations:**
 ```bash
-php artisan migrate
+docker-compose exec backend php artisan migrate
 ```
 
-## 🚀 Executando o Projeto
+5. **Acesse a aplicação:**
+- Frontend: http://localhost:5173
+- API: http://localhost:8000/api
 
-### Backend
-```bash
-php artisan serve
-```
+## 📋 Pré-requisitos
 
-### Frontend
-```bash
-cd frontend
-npm run dev
-```
+- Docker
+- Docker Compose
+- Git
 
-## 🔒 Segurança
-
-- Autenticação via tokens
-- Validação de dados
-- Transações atômicas
-- Proteção contra SQL Injection
-- Sanitização de inputs
-- Validação de CPF único
-- Senhas criptografadas
+> **Obs:** Não é necessário instalar PHP, Composer ou Node.js localmente. Todo o ambiente é gerenciado via Docker.
 
 ## 📝 API Endpoints
 
@@ -105,88 +84,12 @@ npm run dev
 - GET /api/transactions/history - Histórico de transações
 - POST /api/transactions/{transaction}/reverse - Reverter transação
 
-## 📋 Pré-requisitos
+## 🔒 Segurança
 
-### Sistema Operacional
-- Ubuntu 20.04 LTS ou superior
-- Windows 10/11 com WSL2 (Windows Subsystem for Linux)
-- macOS 10.15 ou superior
-
-### Dependências do Sistema
-- PHP 8.1 ou superior
-- Composer 2.0 ou superior
-- Node.js 16.x ou superior
-- Docker e Docker Compose
-- Git
-
-### Extensões PHP Necessárias
-```bash
-# Ubuntu/Debian
-sudo apt-get update
-sudo apt-get install -y \
-    php8.1 \
-    php8.1-cli \
-    php8.1-common \
-    php8.1-curl \
-    php8.1-mbstring \
-    php8.1-mysql \
-    php8.1-xml \
-    php8.1-zip \
-    php8.1-bcmath \
-    php8.1-gd \
-    php8.1-intl \
-    php8.1-pdo \
-    php8.1-tokenizer \
-    php8.1-xml \
-    php8.1-fileinfo
-
-# macOS (usando Homebrew)
-brew install php@8.1
-brew install composer
-
-# Windows (usando WSL2)
-sudo apt-get update
-sudo apt-get install -y \
-    php8.1 \
-    php8.1-cli \
-    php8.1-common \
-    php8.1-curl \
-    php8.1-mbstring \
-    php8.1-mysql \
-    php8.1-xml \
-    php8.1-zip \
-    php8.1-bcmath \
-    php8.1-gd \
-    php8.1-intl \
-    php8.1-pdo \
-    php8.1-tokenizer \
-    php8.1-xml \
-    php8.1-fileinfo
-```
-
-### Instalação do Composer
-```bash
-# Linux/macOS
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php composer-setup.php
-php -r "unlink('composer-setup.php');"
-sudo mv composer.phar /usr/local/bin/composer
-
-# Windows (usando WSL2)
-php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-php composer-setup.php
-php -r "unlink('composer-setup.php');"
-sudo mv composer.phar /usr/local/bin/composer
-```
-
-### Verificação da Instalação
-```bash
-# Verificar versão do PHP
-php -v
-
-# Verificar versão do Composer
-composer -V
-
-# Verificar extensões PHP instaladas
-php -m
-```
+- Autenticação via tokens
+- Validação de dados
+- Transações atômicas
+- Proteção contra SQL Injection
+- Sanitização de inputs
+- Validação de CPF único
+- Senhas criptografadas
