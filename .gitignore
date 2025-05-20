@@ -17,3 +17,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+/frontend/node_modules
+/frontend/dist
+/frontend/build
+/frontend/public/build
+/frontend/public/hot
+/frontend/public/storage
