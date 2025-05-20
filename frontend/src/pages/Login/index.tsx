@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Box, Button, TextField, Typography, Container, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
@@ -85,73 +84,64 @@ export default function Login() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
-      <Container component="main" maxWidth="xs" sx={{ boxShadow: 3, borderRadius: 2, bgcolor: 'background.paper', py: 4 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Typography component="h1" variant="h5" color="black">
-            Login
-          </Typography>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h1 className="text-2xl font-bold text-center text-gray-800 mb-8">
+          Login
+        </h1>
 
-          {errors.general && (
-            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
-              {errors.general}
-            </Alert>
-          )}
+        {errors.general && (
+          <div className="text-red-600 text-sm mb-4">
+            {errors.general}
+          </div>
+        )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email"
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="email"
               name="email"
-              autoComplete="email"
-              autoFocus
               value={formData.email}
               onChange={handleChange}
-              error={!!errors.email}
-              helperText={errors.email}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Email"
             />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Senha"
+            {errors.email && (
+              <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <input
               type="password"
-              id="password"
-              autoComplete="current-password"
+              name="password"
               value={formData.password}
               onChange={handleChange}
-              error={!!errors.password}
-              helperText={errors.password}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Senha"
             />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
-            >
-              {loading ? 'Entrando...' : 'Entrar'}
-            </Button>
-            <Button
-              fullWidth
-              variant="text"
-              onClick={() => navigate('/register')}
-            >
-              Não tem uma conta? Registre-se
-            </Button>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
+            {errors.password && (
+              <p className="text-red-600 text-sm mt-1">{errors.password}</p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/register')}
+            className="w-full text-blue-500 hover:text-blue-600"
+          >
+            Não tem uma conta? Registre-se
+          </button>
+        </form>
+      </div>
+    </div>
   );
 } 

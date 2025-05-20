@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { updateUser, deleteUser } from '../../services/api';
-import { Box, Button, TextField, Typography, Container, Alert, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
@@ -45,80 +44,131 @@ export default function Profile() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
-      <Container maxWidth="xs" sx={{ boxShadow: 3, borderRadius: 2, bgcolor: 'background.paper', py: 4, position: 'relative' }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 relative">
+        <button
           onClick={() => navigate('/dashboard')}
-          sx={{ position: 'absolute', left: 16, top: 16 }}
+          className="absolute left-4 top-4 inline-flex items-center text-gray-600 hover:text-gray-900"
         >
+          <ArrowBackIcon className="mr-1" />
           Voltar
-        </Button>
-        <Typography component="h1" variant="h5" align="center" mb={2} sx={{ mt: 2 }}>
+        </button>
+
+        <h1 className="text-2xl font-semibold text-gray-900 text-center mt-8 mb-6">
           Meu Perfil
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit}>
-          {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Nome"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            label="CPF"
-            name="cpf"
-            value={form.cpf}
-            onChange={handleChange}
-          />
-          <TextField
-            margin="normal"
-            fullWidth
-            label="Nova Senha"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-          />
-          <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
+        </h1>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {success && (
+            <div className="p-4 rounded-md bg-green-50 text-green-700">
+              {success}
+            </div>
+          )}
+          {error && (
+            <div className="p-4 rounded-md bg-red-50 text-red-700">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              Nome
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
+              CPF
+            </label>
+            <input
+              type="text"
+              id="cpf"
+              name="cpf"
+              value={form.cpf}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Nova Senha
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
             Salvar Alterações
-          </Button>
-        </Box>
-        <Button
-          color="error"
-          variant="outlined"
-          fullWidth
-          sx={{ mt: 3 }}
+          </button>
+        </form>
+
+        <button
           onClick={() => setOpenDelete(true)}
+          className="mt-6 w-full flex justify-center py-2 px-4 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           Excluir Conta
-        </Button>
-        <Dialog open={openDelete} onClose={() => setOpenDelete(false)}>
-          <DialogTitle>Confirmar Exclusão</DialogTitle>
-          <DialogContent>
-            Tem certeza que deseja excluir sua conta? Esta ação não poderá ser desfeita.
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDelete(false)}>Cancelar</Button>
-            <Button color="error" onClick={handleDelete}>
-              Excluir
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </Box>
+        </button>
+
+        {/* Modal de Confirmação de Exclusão */}
+        {openDelete && (
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Confirmar Exclusão
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Tem certeza que deseja excluir sua conta? Esta ação não poderá ser desfeita.
+              </p>
+              <div className="mt-6 flex justify-end space-x-3">
+                <button
+                  onClick={() => setOpenDelete(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 } 

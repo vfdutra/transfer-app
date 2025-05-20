@@ -1,20 +1,5 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Paper,
-  Typography,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Box,
-  Alert,
-  Toolbar,
-  Chip,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { getTransactionHistory, transfer, deposit, reverseTransaction, disputeReversedTransaction, getUserById } from '../../services/api';
 import type { UserSummary } from '../../services/api';
@@ -24,20 +9,6 @@ import UndoIcon from '@mui/icons-material/Undo';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import DashboardHeader from './DashboardHeader';
 import TransactionTable from './TransactionTable';
-
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  marginBottom: theme.spacing(3),
-  background: theme.palette.background.paper,
-  boxShadow: theme.shadows[4],
-  borderRadius: theme.spacing(2),
-  width: '100%',
-  maxWidth: 'none',
-  minHeight: 400,
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-}));
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -115,16 +86,14 @@ const Dashboard = () => {
   const disputeMutation = useMutation({
     mutationFn: ({ transactionId, reason }: { transactionId: number; reason: string }) =>
       disputeReversedTransaction(transactionId, reason),
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      updateUserBalance(data.new_balance);
       setOpenDispute(false);
       setDisputeReason('');
-      setSelectedTransaction(null);
       setError('');
     },
     onError: (error: any) => {
-      setError(error.response?.data?.message || 'Erro ao contestar reversão');
+      setError(error.response?.data?.message || 'Erro ao enviar contestação');
     },
   });
 
@@ -132,18 +101,21 @@ const Dashboard = () => {
     setOpenTransfer(true);
     setStepTransfer('form');
     setReceiverInfo(null);
-    setTransferData({ receiver_id: '', amount: '', description: '' });
+    setError('');
   };
 
   const handleCheckReceiver = async () => {
-    setError('');
+    if (!transferData.receiver_id) return;
+
     setLoadingReceiver(true);
+    setError('');
+
     try {
-      const user = await getUserById(Number(transferData.receiver_id));
-      setReceiverInfo(user);
+      const receiver = await getUserById(Number(transferData.receiver_id));
+      setReceiverInfo(receiver);
       setStepTransfer('confirm');
-    } catch (err: any) {
-      setError('Destinatário não encontrado. Verifique o ID.');
+    } catch (error: any) {
+      setError(error.message || 'Erro ao verificar destinatário');
     } finally {
       setLoadingReceiver(false);
     }
@@ -184,228 +156,276 @@ const Dashboard = () => {
   }, []);
 
   const getStatusChip = (status: string, disputeStatus?: string) => {
+    const getChipClasses = (color: string) => 
+      `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`;
+
     switch (status) {
       case 'completed':
-        return <Chip label="Concluída" color="success" />;
+        return <span className={getChipClasses('bg-green-100 text-green-800')}>Concluída</span>;
       case 'pending':
-        return <Chip label="Pendente" color="warning" />;
+        return <span className={getChipClasses('bg-yellow-100 text-yellow-800')}>Pendente</span>;
       case 'failed':
-        return <Chip label="Falhou" color="error" />;
+        return <span className={getChipClasses('bg-red-100 text-red-800')}>Falhou</span>;
       case 'reversed':
         if (disputeStatus === 'pending') {
-          return <Chip label="Revertida (Em Disputa)" color="warning" />;
+          return <span className={getChipClasses('bg-yellow-100 text-yellow-800')}>Revertida (Em Disputa)</span>;
         } else if (disputeStatus === 'approved') {
-          return <Chip label="Disputa Aprovada" color="success" />;
+          return <span className={getChipClasses('bg-green-100 text-green-800')}>Disputa Aprovada</span>;
         } else if (disputeStatus === 'rejected') {
-          return <Chip label="Disputa Rejeitada" color="error" />;
+          return <span className={getChipClasses('bg-red-100 text-red-800')}>Disputa Rejeitada</span>;
         }
-        return <Chip label="Revertida" color="default" />;
+        return <span className={getChipClasses('bg-gray-100 text-gray-800')}>Revertida</span>;
       case 'disputed':
-        return <Chip label="Em Disputa" color="warning" />;
+        return <span className={getChipClasses('bg-yellow-100 text-yellow-800')}>Em Disputa</span>;
       default:
-        return <Chip label={status} />;
+        return <span className={getChipClasses('bg-gray-100 text-gray-800')}>{status}</span>;
     }
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <div className="min-h-screen bg-gray-100">
       <DashboardHeader user={user} logout={logout} navigate={navigate} />
-      <Toolbar />
-      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mt: 4, px: { xs: 1, sm: 3 } }}>
-        <StyledPaper sx={{ width: { xs: '100%', md: '90%' }, maxWidth: 1400 }}>
-          <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} mb={2} gap={2} width="100%">
-            <Typography variant="h5">Dashboard</Typography>
-            <Box>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleOpenTransfer}
-                sx={{ mr: 1 }}
-                startIcon={<UndoIcon />}
-              >
-                Transferir
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => setOpenDeposit(true)}
-                startIcon={<AccountBalanceWalletIcon />}
-              >
-                Depositar
-              </Button>
-            </Box>
-          </Box>
-          {error && (
-            <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
-              {error}
-            </Alert>
-          )}
-          <TransactionTable
-            transactions={transactions}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            onPageChange={handleChangePage}
-            user={user}
-            getStatusChip={getStatusChip}
-            handleReverse={handleReverse}
-            setSelectedTransaction={setSelectedTransaction}
-            setOpenDispute={setOpenDispute}
-          />
-        </StyledPaper>
-      </Box>
+      <div className="pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+              <h2 className="text-2xl font-semibold text-gray-900">Dashboard</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleOpenTransfer}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <UndoIcon className="mr-2" />
+                  Transferir
+                </button>
+                <button
+                  onClick={() => setOpenDeposit(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <AccountBalanceWalletIcon className="mr-2" />
+                  Depositar
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="mb-4 p-4 rounded-md bg-red-50 text-red-700">
+                {error}
+              </div>
+            )}
+
+            <TransactionTable
+              transactions={transactions}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              onPageChange={handleChangePage}
+              user={user}
+              getStatusChip={getStatusChip}
+              handleReverse={handleReverse}
+              setSelectedTransaction={setSelectedTransaction}
+              setOpenDispute={setOpenDispute}
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Modal de Transferência */}
-      <Dialog open={openTransfer} onClose={() => setOpenTransfer(false)}>
-        <DialogTitle>Realizar Transferência</DialogTitle>
-        <DialogContent>
-          {stepTransfer === 'form' && (
-            <>
-              {(user?.balance ?? 0) < 0 && (
-                <Alert severity="warning" sx={{ mb: 2 }}>
-                  Seu saldo está negativo. O valor será descontado automaticamente no seu próximo depósito.
-                </Alert>
+      {openTransfer && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Realizar Transferência</h3>
+            
+            {stepTransfer === 'form' && (
+              <>
+                {(user?.balance ?? 0) < 0 && (
+                  <div className="mb-4 p-4 rounded-md bg-yellow-50 text-yellow-700">
+                    Seu saldo está negativo. O valor será descontado automaticamente no seu próximo depósito.
+                  </div>
+                )}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">ID do Destinatário</label>
+                    <input
+                      type="number"
+                      value={transferData.receiver_id}
+                      onChange={(e) => setTransferData({ ...transferData, receiver_id: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Valor</label>
+                    <input
+                      type="number"
+                      value={transferData.amount}
+                      onChange={(e) => setTransferData({ ...transferData, amount: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Descrição</label>
+                    <input
+                      type="text"
+                      value={transferData.description}
+                      onChange={(e) => setTransferData({ ...transferData, description: e.target.value })}
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {stepTransfer === 'confirm' && receiverInfo && (
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-900">Confirme os dados do destinatário:</h4>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Nome:</span> {receiverInfo.name}</p>
+                  <p><span className="font-medium">Email:</span> {receiverInfo.email}</p>
+                  <p><span className="font-medium">CPF:</span> {receiverInfo.cpf}</p>
+                  <p><span className="font-medium">Valor:</span> {formatCurrency(Number(transferData.amount))}</p>
+                  {transferData.description && (
+                    <p><span className="font-medium">Descrição:</span> {transferData.description}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="mt-4 p-4 rounded-md bg-red-50 text-red-700">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end space-x-3">
+              {stepTransfer === 'form' ? (
+                <>
+                  <button
+                    onClick={() => setOpenTransfer(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCheckReceiver}
+                    disabled={loadingReceiver || !transferData.receiver_id || !transferData.amount}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loadingReceiver ? 'Verificando...' : 'Avançar'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setStepTransfer('form')}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Voltar
+                  </button>
+                  <button
+                    onClick={handleTransferConfirm}
+                    disabled={transferMutation.isPending}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Confirmar e Transferir
+                  </button>
+                </>
               )}
-              <TextField
-                autoFocus
-                margin="dense"
-                label="ID do Destinatário"
-                type="number"
-                fullWidth
-                value={transferData.receiver_id}
-                onChange={(e) => setTransferData({ ...transferData, receiver_id: e.target.value })}
-              />
-              <TextField
-                margin="dense"
-                label="Valor"
-                type="number"
-                fullWidth
-                value={transferData.amount}
-                onChange={(e) => setTransferData({ ...transferData, amount: e.target.value })}
-              />
-              <TextField
-                margin="dense"
-                label="Descrição"
-                fullWidth
-                value={transferData.description}
-                onChange={(e) => setTransferData({ ...transferData, description: e.target.value })}
-              />
-            </>
-          )}
-          {stepTransfer === 'confirm' && receiverInfo && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>Confirme os dados do destinatário:</Typography>
-              <Typography><b>Nome:</b> {receiverInfo.name}</Typography>
-              <Typography><b>Email:</b> {receiverInfo.email}</Typography>
-              <Typography><b>CPF:</b> {receiverInfo.cpf}</Typography>
-              <Typography sx={{ mt: 2 }}><b>Valor:</b> {formatCurrency(Number(transferData.amount))}</Typography>
-              {transferData.description && (
-                <Typography><b>Descrição:</b> {transferData.description}</Typography>
-              )}
-            </Box>
-          )}
-          {error && (
-            <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
-          )}
-        </DialogContent>
-        <DialogActions>
-          {stepTransfer === 'form' ? (
-            <>
-              <Button onClick={() => setOpenTransfer(false)}>Cancelar</Button>
-              <Button
-                onClick={handleCheckReceiver}
-                disabled={loadingReceiver || !transferData.receiver_id || !transferData.amount}
-                variant="contained"
-                color="primary"
-              >
-                {loadingReceiver ? 'Verificando...' : 'Avançar'}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button onClick={() => setStepTransfer('form')}>Voltar</Button>
-              <Button
-                onClick={handleTransferConfirm}
-                disabled={transferMutation.isPending}
-                variant="contained"
-                color="primary"
-              >
-                Confirmar e Transferir
-              </Button>
-            </>
-          )}
-        </DialogActions>
-      </Dialog>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Depósito */}
-      <Dialog open={openDeposit} onClose={() => setOpenDeposit(false)}>
-        <DialogTitle>Realizar Depósito</DialogTitle>
-        <DialogContent>
-          {(user?.balance ?? 0) < 0 && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Seu saldo atual é {formatCurrency(user?.balance ?? 0)}. 
-              O valor será descontado automaticamente deste depósito.
-            </Alert>
-          )}
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Valor"
-            type="number"
-            fullWidth
-            value={depositData.amount}
-            onChange={(e) => setDepositData({ ...depositData, amount: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="Descrição"
-            fullWidth
-            value={depositData.description}
-            onChange={(e) => setDepositData({ ...depositData, description: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeposit(false)}>Cancelar</Button>
-          <Button
-            onClick={handleDeposit}
-            disabled={depositMutation.isPending}
-            variant="contained"
-            color="primary"
-          >
-            Depositar
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openDeposit && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Realizar Depósito</h3>
+            
+            {(user?.balance ?? 0) < 0 && (
+              <div className="mb-4 p-4 rounded-md bg-blue-50 text-blue-700">
+                Seu saldo atual é {formatCurrency(user?.balance ?? 0)}. 
+                O valor será descontado automaticamente deste depósito.
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Valor</label>
+                <input
+                  type="number"
+                  value={depositData.amount}
+                  onChange={(e) => setDepositData({ ...depositData, amount: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Descrição</label>
+                <input
+                  type="text"
+                  value={depositData.description}
+                  onChange={(e) => setDepositData({ ...depositData, description: e.target.value })}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setOpenDeposit(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeposit}
+                disabled={depositMutation.isPending}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Depositar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Contestação */}
-      <Dialog open={openDispute} onClose={() => setOpenDispute(false)}>
-        <DialogTitle>Contestar Reversão</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Por favor, explique o motivo da sua contestação. Nossa equipe irá analisar seu caso.
-          </Typography>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Motivo da Contestação"
-            fullWidth
-            multiline
-            rows={4}
-            value={disputeReason}
-            onChange={(e) => setDisputeReason(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDispute(false)}>Cancelar</Button>
-          <Button
-            onClick={handleDispute}
-            disabled={disputeMutation.isPending || !disputeReason}
-            variant="contained"
-            color="primary"
-          >
-            Enviar Contestação
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+      {openDispute && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Contestar Reversão</h3>
+            
+            <p className="text-sm text-gray-500 mb-4">
+              Por favor, explique o motivo da sua contestação. Nossa equipe irá analisar seu caso.
+            </p>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Motivo da Contestação</label>
+              <textarea
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+                rows={4}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={() => setOpenDispute(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDispute}
+                disabled={disputeMutation.isPending || !disputeReason}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Enviar Contestação
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

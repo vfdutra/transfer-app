@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
-import { Box, Button, TextField, Typography, Container, Alert } from '@mui/material';
 
 export function Register() {
   const navigate = useNavigate();
@@ -136,114 +135,158 @@ export function Register() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
-      <Container component="main" maxWidth="xs" sx={{ boxShadow: 3, borderRadius: 2, bgcolor: 'background.paper', py: 4 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <Typography component="h1" variant="h5" color="black">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="flex flex-col items-center">
+          <h1 className="text-2xl font-semibold text-gray-900">
             Criar nova conta
-          </Typography>
+          </h1>
 
           {errors.general && (
-            <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+            <div className="mt-4 w-full p-4 rounded-md bg-red-50 text-red-700">
               {errors.general}
-            </Alert>
+            </div>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3, width: '100%' }}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="name"
-              label="Nome completo"
-              name="name"
-              autoComplete="name"
-              autoFocus
-              value={formData.name}
-              onChange={handleChange}
-              error={!!errors.name}
-              helperText={errors.name}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label="Email"
-              name="email"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={!!errors.email}
-              helperText={errors.email}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              id="cpf"
-              label="CPF"
-              name="cpf"
-              autoComplete="off"
-              value={formData.cpf}
-              onChange={handleChange}
-              error={!!errors.cpf}
-              helperText={errors.cpf || 'Digite apenas números'}
-              inputProps={{ maxLength: 14 }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Senha"
-              type="password"
-              id="password"
-              autoComplete="new-password"
-              value={formData.password}
-              onChange={handleChange}
-              error={!!errors.password}
-              helperText={errors.password || 'Mínimo de 8 caracteres'}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password_confirmation"
-              label="Confirmar senha"
-              type="password"
-              id="password_confirmation"
-              autoComplete="new-password"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              error={!!errors.password_confirmation}
-              helperText={errors.password_confirmation}
-            />
-            <Button
+          <form onSubmit={handleSubmit} className="mt-6 w-full space-y-4">
+            <div>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                Nome completo
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                autoComplete="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md shadow-sm ${
+                  errors.name
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md shadow-sm ${
+                  errors.email
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+              />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="cpf" className="block text-sm font-medium text-gray-700">
+                CPF
+              </label>
+              <input
+                type="text"
+                id="cpf"
+                name="cpf"
+                autoComplete="off"
+                required
+                maxLength={14}
+                value={formData.cpf}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md shadow-sm ${
+                  errors.cpf
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+              />
+              {errors.cpf ? (
+                <p className="mt-1 text-sm text-red-600">{errors.cpf}</p>
+              ) : (
+                <p className="mt-1 text-sm text-gray-500">Digite apenas números</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Senha
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                autoComplete="new-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md shadow-sm ${
+                  errors.password
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+              />
+              {errors.password ? (
+                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
+              ) : (
+                <p className="mt-1 text-sm text-gray-500">Mínimo de 8 caracteres</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
+                Confirmar senha
+              </label>
+              <input
+                type="password"
+                id="password_confirmation"
+                name="password_confirmation"
+                autoComplete="new-password"
+                required
+                value={formData.password_confirmation}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md shadow-sm ${
+                  errors.password_confirmation
+                    ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
+                }`}
+              />
+              {errors.password_confirmation && (
+                <p className="mt-1 text-sm text-red-600">{errors.password_confirmation}</p>
+              )}
+            </div>
+
+            <button
               type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
               disabled={loading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Registrando...' : 'Registrar'}
-            </Button>
-            <Button
-              fullWidth
-              variant="text"
+            </button>
+
+            <button
+              type="button"
               onClick={() => navigate('/login')}
+              className="w-full text-sm text-blue-600 hover:text-blue-500"
             >
               Já tem uma conta? Faça login
-            </Button>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 } 
