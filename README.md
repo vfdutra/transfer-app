@@ -40,18 +40,39 @@ Um sistema moderno de transferência bancária desenvolvido com Laravel e React,
 cd transfer-app
 ```
 
-2. **Copie o arquivo de variáveis de ambiente:**
+2. **Configure as variáveis de ambiente:**
 ```bash
 cp .env.example .env
 ```
 
+Edite o arquivo `.env` e configure as seguintes variáveis:
+```env
+# Configurações do Banco de Dados
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=secret
+MYSQL_ROOT_PASSWORD=secret
+
+# Configurações da Aplicação
+APP_NAME="Transfer App"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# Configurações do Frontend
+VITE_API_URL=http://localhost:8000/api
+```
+
 3. **Suba os containers:**
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 4. **Acesse a aplicação:**
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:8000
 - API: http://localhost:8000/api
 
 ## 📋 Pré-requisitos
@@ -61,6 +82,41 @@ docker-compose up -d
 - Git
 
 > **Obs:** Não é necessário instalar PHP, Composer ou Node.js localmente. Todo o ambiente é gerenciado via Docker.
+
+## 🔧 Configuração do Ambiente
+
+### Variáveis de Ambiente Importantes
+
+O projeto utiliza as seguintes variáveis de ambiente principais:
+
+#### Banco de Dados
+- `DB_DATABASE`: Nome do banco de dados (padrão: laravel)
+- `DB_USERNAME`: Usuário do banco de dados (padrão: laravel)
+- `DB_PASSWORD`: Senha do usuário do banco de dados (padrão: secret)
+- `MYSQL_ROOT_PASSWORD`: Senha do usuário root do MySQL (padrão: secret)
+
+#### Aplicação
+- `APP_NAME`: Nome da aplicação
+- `APP_ENV`: Ambiente (development, production, etc)
+- `APP_DEBUG`: Modo debug (true/false)
+- `APP_URL`: URL base da aplicação
+
+#### Frontend
+- `VITE_API_URL`: URL da API para o frontend
+
+### Solução de Problemas Comuns
+
+1. **Erro de conexão com o banco de dados:**
+   - Verifique se as variáveis de ambiente do banco de dados estão corretas
+   - Certifique-se que o container do MySQL está rodando: `docker-compose ps`
+   - Verifique os logs do MySQL: `docker-compose logs mysql`
+
+2. **Erro de permissão:**
+   - Execute: `docker-compose exec backend chmod -R 777 storage bootstrap/cache`
+
+3. **Erro de build:**
+   - Limpe os containers e volumes: `docker-compose down -v`
+   - Reconstrua: `docker-compose up -d --build`
 
 ## 📝 API Endpoints
 

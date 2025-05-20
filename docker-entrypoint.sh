@@ -12,10 +12,6 @@ mkdir -p /var/www/storage/logs \
     /var/www/storage/framework/cache \
     /var/www/bootstrap/cache
 
-# Ajustar permissões iniciais
-echo "Ajustando permissões iniciais..."
-chmod -R 777 /var/www/storage /var/www/bootstrap/cache
-
 # Navegar para o diretório correto
 cd /var/www
 
