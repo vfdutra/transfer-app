@@ -29,9 +29,10 @@ Um sistema moderno de transferência bancária desenvolvido com Laravel e React,
 ### Frontend
 - React
 - TypeScript
-- Material-UI (MUI)
+- Tailwind CSS (Estilização)
 - Vite
 - Axios
+- React Query (Gerenciamento de estado e cache)
 
 ## 🔧 Instalação e Execução (via Docker)
 
@@ -144,3 +145,15 @@ O projeto utiliza as seguintes variáveis de ambiente principais:
 - Sanitização de inputs
 - Validação de CPF único
 - Senhas criptografadas
+
+## 🎨 Estilização
+
+O projeto utiliza Tailwind CSS para estilização, oferecendo:
+
+- Design responsivo e moderno
+- Sistema de cores consistente
+- Componentes reutilizáveis
+- Performance otimizada
+- Fácil manutenção e customização
+- Suporte a temas e dark mode
+- Acessibilidade integrada
